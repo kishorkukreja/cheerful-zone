@@ -12,6 +12,7 @@ import {
   dispatchCalc,
   recommendation,
   auditEvents,
+  type Lane,
 } from "@/data/hul-mock";
 
 export const Route = createFileRoute("/lanes/$laneId")({
@@ -50,7 +51,7 @@ function fmt(n: number) {
 }
 
 function LaneDetail() {
-  const { lane } = Route.useLoaderData();
+  const { lane } = Route.useLoaderData() as { lane: Lane };
   const s = shortage(lane);
   const d = dispatchCalc(lane);
   const rec = recommendation(lane);
