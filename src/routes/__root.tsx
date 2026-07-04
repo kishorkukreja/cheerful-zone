@@ -94,31 +94,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Dispatch Cockpit · IDIE" },
-      {
-        name: "description",
-        content:
-          "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers.",
-      },
-      {
-        property: "og:description",
-        content:
-          "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers.",
-      },
-      {
-        name: "twitter:description",
-        content:
-          "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers.",
-      },
-      {
-        property: "og:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/154c539b-98dd-4d53-ae10-d0252705c908/id-preview-eb5e5b7d--4ee63b03-7fc2-4bd6-985b-2a89f19de0c4.lovable.app-1783126505561.png",
-      },
-      {
-        name: "twitter:image",
-        content:
-          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/154c539b-98dd-4d53-ae10-d0252705c908/id-preview-eb5e5b7d--4ee63b03-7fc2-4bd6-985b-2a89f19de0c4.lovable.app-1783126505561.png",
-      },
+      { name: "description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
+      { property: "og:description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
+      { name: "twitter:description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/1b429804-3131-45ed-94f7-f055a587a592" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/1b429804-3131-45ed-94f7-f055a587a592" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
