@@ -78,13 +78,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "IDIE — Intelligent Dispatch & Indent Engine" },
+      { title: "Dispatch Cockpit · IDIE" },
       {
         name: "description",
         content:
           "Planner cockpit for Factory-to-DC replenishment: prioritized dispatch, manual indent workbench, stock analyser and lane analytics.",
       },
-      { property: "og:title", content: "IDIE — Intelligent Dispatch & Indent Engine" },
+      { property: "og:title", content: "Dispatch Cockpit · IDIE" },
       {
         property: "og:description",
         content:
@@ -92,6 +92,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Dispatch Cockpit · IDIE" },
+      { name: "description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
+      { property: "og:description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
+      { name: "twitter:description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/154c539b-98dd-4d53-ae10-d0252705c908/id-preview-eb5e5b7d--4ee63b03-7fc2-4bd6-985b-2a89f19de0c4.lovable.app-1783126505561.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/154c539b-98dd-4d53-ae10-d0252705c908/id-preview-eb5e5b7d--4ee63b03-7fc2-4bd6-985b-2a89f19de0c4.lovable.app-1783126505561.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
