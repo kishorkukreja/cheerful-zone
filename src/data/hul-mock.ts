@@ -24,6 +24,8 @@ export type Lane = {
   pdq: number;
   buckets: Bucket[];
   priorityScore: number;
+  /** 0-100, PRD "Lane Criticality" factor — hub importance independent of tier/order-loss. */
+  criticality: number;
   customerTier: "A" | "B" | "C";
   transitDays: number;
 };
@@ -72,12 +74,13 @@ export const lanes: Lane[] = [
     allocation: 4200,
     pdq: 3000,
     buckets: [
-      { name: "ATP", available: 3200, consumed: 3200, eligible: true },
-      { name: "QC Stock", available: 1800, consumed: 1200, eligible: true },
+      { name: "ATP", available: 1200, consumed: 1200, eligible: true },
+      { name: "QC Stock", available: 900, consumed: 600, eligible: true },
       { name: "Reserved", available: 900, consumed: 0, eligible: false },
-      { name: "Production Req.", available: 5000, consumed: 800, eligible: true },
+      { name: "Production Req.", available: 2000, consumed: 320, eligible: true },
     ],
     priorityScore: 96,
+    criticality: 95,
     customerTier: "A",
     transitDays: 2,
   },
@@ -96,12 +99,13 @@ export const lanes: Lane[] = [
     allocation: 9000,
     pdq: 4000,
     buckets: [
-      { name: "ATP", available: 2400, consumed: 2400, eligible: true },
-      { name: "QC Stock", available: 600, consumed: 600, eligible: true },
+      { name: "ATP", available: 900, consumed: 900, eligible: true },
+      { name: "QC Stock", available: 300, consumed: 300, eligible: true },
       { name: "Reserved", available: 1500, consumed: 0, eligible: false },
-      { name: "Production Req.", available: 3000, consumed: 0, eligible: true },
+      { name: "Production Req.", available: 500, consumed: 0, eligible: true },
     ],
     priorityScore: 88,
+    criticality: 85,
     customerTier: "A",
     transitDays: 1,
   },
@@ -126,6 +130,7 @@ export const lanes: Lane[] = [
       { name: "Production Req.", available: 2000, consumed: 0, eligible: true },
     ],
     priorityScore: 42,
+    criticality: 55,
     customerTier: "B",
     transitDays: 3,
   },
@@ -150,6 +155,7 @@ export const lanes: Lane[] = [
       { name: "Production Req.", available: 2500, consumed: 0, eligible: true },
     ],
     priorityScore: 81,
+    criticality: 80,
     customerTier: "A",
     transitDays: 2,
   },
@@ -174,6 +180,7 @@ export const lanes: Lane[] = [
       { name: "Production Req.", available: 1800, consumed: 700, eligible: true },
     ],
     priorityScore: 74,
+    criticality: 60,
     customerTier: "B",
     transitDays: 4,
   },
@@ -198,6 +205,7 @@ export const lanes: Lane[] = [
       { name: "Production Req.", available: 1200, consumed: 0, eligible: true },
     ],
     priorityScore: 28,
+    criticality: 40,
     customerTier: "C",
     transitDays: 2,
   },
@@ -222,6 +230,7 @@ export const lanes: Lane[] = [
       { name: "Production Req.", available: 3400, consumed: 400, eligible: true },
     ],
     priorityScore: 90,
+    criticality: 88,
     customerTier: "A",
     transitDays: 3,
   },
@@ -246,6 +255,7 @@ export const lanes: Lane[] = [
       { name: "Production Req.", available: 900, consumed: 0, eligible: true },
     ],
     priorityScore: 18,
+    criticality: 35,
     customerTier: "C",
     transitDays: 2,
   },
@@ -262,9 +272,7 @@ export function shortage(l: Lane) {
   return dm(demandSignal(l), plannedCoverage(l));
 }
 export function dispatchCalc(l: Lane) {
-  const eligibleStock = l.buckets
-    .filter((b) => b.eligible)
-    .reduce((s, b) => s + b.available, 0);
+  const eligibleStock = l.buckets.filter((b) => b.eligible).reduce((s, b) => s + b.available, 0);
   return Math.min(shortage(l), eligibleStock);
 }
 export function recommendation(l: Lane): "Dispatch" | "Raise Indent" | "Watch" {
@@ -272,6 +280,42 @@ export function recommendation(l: Lane): "Dispatch" | "Raise Indent" | "Watch" {
   if (s === 0) return "Watch";
   if (dispatchCalc(l) >= s * 0.8) return "Dispatch";
   return "Raise Indent";
+}
+
+// Priority scoring engine (PRD §7) — same formula backs both the Cockpit
+// ranking and the Admin "live ranking preview", so tuning weights in Admin
+// has a real, visible effect instead of a decorative slider.
+export type PriorityWeights = {
+  orderLoss: number;
+  cover: number;
+  tier: number;
+  criticality: number;
+};
+
+export const DEFAULT_WEIGHTS: PriorityWeights = {
+  orderLoss: 40,
+  cover: 25,
+  tier: 20,
+  criticality: 15,
+};
+
+const tierScore: Record<Lane["customerTier"], number> = { A: 100, B: 60, C: 30 };
+
+export function computePriorityScore(l: Lane, weights: PriorityWeights = DEFAULT_WEIGHTS) {
+  const maxOrderLoss = Math.max(...lanes.map((x) => x.orderLoss));
+  const orderLossNorm = (l.orderLoss / maxOrderLoss) * 100;
+  const ds = demandSignal(l);
+  const coverNorm = ds > 0 ? (shortage(l) / ds) * 100 : 0;
+  const tierNorm = tierScore[l.customerTier];
+  const criticalityNorm = l.criticality;
+  const totalWeight = weights.orderLoss + weights.cover + weights.tier + weights.criticality || 100;
+  const score =
+    (orderLossNorm * weights.orderLoss +
+      coverNorm * weights.cover +
+      tierNorm * weights.tier +
+      criticalityNorm * weights.criticality) /
+    totalWeight;
+  return Math.round(Math.min(100, Math.max(0, score)));
 }
 
 export const indents: Indent[] = [
@@ -338,25 +382,148 @@ export const indents: Indent[] = [
 ];
 
 export const nodes: NodeItem[] = [
-  { id: "HRD-01", name: "Haridwar Plant", city: "Haridwar", type: "Factory", stockPct: 84, qcPending: 320, coverageDays: 22, x: 38, y: 18 },
-  { id: "DPD-02", name: "Dapada Plant", city: "Dapada", type: "Factory", stockPct: 72, qcPending: 180, coverageDays: 16, x: 26, y: 46 },
-  { id: "SMP-03", name: "Sumerpur Plant", city: "Sumerpur", type: "Factory", stockPct: 58, qcPending: 240, coverageDays: 14, x: 28, y: 34 },
-  { id: "PDY-04", name: "Puducherry Plant", city: "Puducherry", type: "Factory", stockPct: 66, qcPending: 210, coverageDays: 12, x: 44, y: 78 },
-  { id: "DC-DEL", name: "Delhi NCR DC", city: "New Delhi", type: "DC", stockPct: 22, qcPending: 90, coverageDays: 3, x: 46, y: 22 },
-  { id: "DC-MUM", name: "Mumbai West DC", city: "Mumbai", type: "DC", stockPct: 41, qcPending: 60, coverageDays: 6, x: 28, y: 50 },
-  { id: "DC-KOL", name: "Kolkata East DC", city: "Kolkata", type: "DC", stockPct: 74, qcPending: 40, coverageDays: 18, x: 70, y: 40 },
-  { id: "DC-CHN", name: "Chennai South DC", city: "Chennai", type: "DC", stockPct: 33, qcPending: 82, coverageDays: 5, x: 52, y: 74 },
-  { id: "DC-BLR", name: "Bengaluru DC", city: "Bengaluru", type: "DC", stockPct: 48, qcPending: 130, coverageDays: 8, x: 46, y: 70 },
+  {
+    id: "HRD-01",
+    name: "Haridwar Plant",
+    city: "Haridwar",
+    type: "Factory",
+    stockPct: 84,
+    qcPending: 320,
+    coverageDays: 22,
+    x: 38,
+    y: 18,
+  },
+  {
+    id: "DPD-02",
+    name: "Dapada Plant",
+    city: "Dapada",
+    type: "Factory",
+    stockPct: 72,
+    qcPending: 180,
+    coverageDays: 16,
+    x: 26,
+    y: 46,
+  },
+  {
+    id: "SMP-03",
+    name: "Sumerpur Plant",
+    city: "Sumerpur",
+    type: "Factory",
+    stockPct: 58,
+    qcPending: 240,
+    coverageDays: 14,
+    x: 28,
+    y: 34,
+  },
+  {
+    id: "PDY-04",
+    name: "Puducherry Plant",
+    city: "Puducherry",
+    type: "Factory",
+    stockPct: 66,
+    qcPending: 210,
+    coverageDays: 12,
+    x: 44,
+    y: 78,
+  },
+  {
+    id: "DC-DEL",
+    name: "Delhi NCR DC",
+    city: "New Delhi",
+    type: "DC",
+    stockPct: 22,
+    qcPending: 90,
+    coverageDays: 3,
+    x: 46,
+    y: 22,
+  },
+  {
+    id: "DC-MUM",
+    name: "Mumbai West DC",
+    city: "Mumbai",
+    type: "DC",
+    stockPct: 41,
+    qcPending: 60,
+    coverageDays: 6,
+    x: 28,
+    y: 50,
+  },
+  {
+    id: "DC-KOL",
+    name: "Kolkata East DC",
+    city: "Kolkata",
+    type: "DC",
+    stockPct: 74,
+    qcPending: 40,
+    coverageDays: 18,
+    x: 70,
+    y: 40,
+  },
+  {
+    id: "DC-CHN",
+    name: "Chennai South DC",
+    city: "Chennai",
+    type: "DC",
+    stockPct: 33,
+    qcPending: 82,
+    coverageDays: 5,
+    x: 52,
+    y: 74,
+  },
+  {
+    id: "DC-BLR",
+    name: "Bengaluru DC",
+    city: "Bengaluru",
+    type: "DC",
+    stockPct: 48,
+    qcPending: 130,
+    coverageDays: 8,
+    x: 46,
+    y: 70,
+  },
 ];
 
 export function getLaneById(id: string): Lane | undefined {
   return lanes.find((l) => l.id === id);
 }
 
-export const auditEvents = [
-  { at: "Today 06:12", actor: "IDIE Engine", event: "Recommendation generated: Raise Indent (4,000 units)" },
-  { at: "Today 06:08", actor: "APO Sync", event: "NR APO refreshed for 412 lanes" },
-  { at: "Today 05:55", actor: "OMS Feed", event: "Order loss updated: +2,100 units in 3h window" },
-  { at: "Yesterday 18:40", actor: "Priya S.", event: "Approved indent IND-24-0776 (Surf Excel · Delhi)" },
-  { at: "Yesterday 18:22", actor: "Priya S.", event: "Rejected indent IND-24-0785 with note: 'DC replan pending'" },
+export type AuditEvent = {
+  at: string;
+  actor: string;
+  event: string;
+  /** null = system-wide event, shown on every lane's trail */
+  laneId: string | null;
+};
+
+export const auditEvents: AuditEvent[] = [
+  {
+    at: "Today 06:12",
+    actor: "IDIE Engine",
+    event: "Recommendation generated: Raise Indent (4,000 units)",
+    laneId: "HRD-DEL-SURF",
+  },
+  {
+    at: "Today 06:08",
+    actor: "APO Sync",
+    event: "NR APO refreshed for 412 lanes",
+    laneId: null,
+  },
+  {
+    at: "Today 05:55",
+    actor: "OMS Feed",
+    event: "Order loss updated: +2,100 units in 3h window",
+    laneId: "HRD-DEL-SURF",
+  },
+  {
+    at: "Yesterday 18:40",
+    actor: "Priya S.",
+    event: "Approved indent IND-24-0776 (Surf Excel · Delhi)",
+    laneId: "HRD-DEL-SURF",
+  },
+  {
+    at: "Yesterday 18:22",
+    actor: "Priya S.",
+    event: "Rejected indent IND-24-0785 with note: 'DC replan pending'",
+    laneId: "HRD-BLR-BRU",
+  },
 ];

@@ -1,19 +1,29 @@
-import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, Check, PackagePlus, Clock, Factory, Warehouse } from "lucide-react";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Check,
+  PackagePlus,
+  Clock,
+  Factory,
+  Warehouse,
+} from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
+  lanes,
   getLaneById,
   demandSignal,
   plannedCoverage,
   shortage,
   dispatchCalc,
   recommendation,
-  auditEvents,
+  computePriorityScore,
   type Lane,
 } from "@/data/hul-mock";
+import { useAppStore, approveDispatch, raiseIndent, auditEventsForLane } from "@/store/app-store";
 
 export const Route = createFileRoute("/lanes/$laneId")({
   loader: ({ params }) => {
@@ -52,11 +62,22 @@ function fmt(n: number) {
 
 function LaneDetail() {
   const { lane } = Route.useLoaderData() as { lane: Lane };
+  const navigate = useNavigate();
+  const { weights, dispatched, indents, auditEvents: events } = useAppStore();
   const s = shortage(lane);
   const d = dispatchCalc(lane);
   const rec = recommendation(lane);
   const ds = demandSignal(lane);
   const cov = plannedCoverage(lane);
+  const isDispatched = !!dispatched[lane.id];
+  const existingIndent = indents.find((i) => i.laneId === lane.id && i.status !== "Rejected");
+
+  const rankedIds = [...lanes]
+    .sort((a, b) => computePriorityScore(b, weights) - computePriorityScore(a, weights))
+    .map((l) => l.id);
+  const rank = rankedIds.indexOf(lane.id) + 1;
+
+  const laneAudit = auditEventsForLane(events, lane.id);
 
   // Sparkline mock
   const actual = [82, 76, 74, 70, 68, 65, 60, 55, 48, 42, 38, 30, 24, 18];
@@ -73,29 +94,65 @@ function LaneDetail() {
       >
         <ArrowLeft className="w-3 h-3" /> Back to Cockpit
       </Link>
+      <div className="text-xs text-on-surface-variant mb-1">
+        Ranked <span className="font-semibold font-data-mono">#{rank}</span> of {lanes.length} in
+        today's priority queue
+        {existingIndent && (
+          <>
+            {" · "}
+            <Link
+              to="/indents"
+              search={{ highlight: existingIndent.id }}
+              className="text-primary hover:underline inline-flex items-center gap-0.5"
+            >
+              View indent {existingIndent.id} <ArrowUpRight className="w-2.5 h-2.5" />
+            </Link>
+          </>
+        )}
+      </div>
       <PageHeader
         eyebrow={`Lane ${lane.id}`}
         title={lane.cbu}
         subtitle={`${lane.pack} · Tier ${lane.customerTier} customer · ${lane.transitDays}-day transit`}
         actions={
           <>
-            {rec === "Dispatch" && (
-              <Button
-                onClick={() =>
-                  toast.success(`Dispatch approved · ${fmt(d)} units to ${lane.dcCode}`)
-                }
-              >
-                <Check className="w-4 h-4 mr-2" /> Approve dispatch
-              </Button>
-            )}
-            {rec === "Raise Indent" && (
-              <Link to="/indents">
-                <Button>
+            {rec === "Dispatch" &&
+              (isDispatched ? (
+                <span className="inline-flex items-center gap-1.5 text-sm text-on-success-container bg-success-container px-3 py-2 rounded-md font-semibold">
+                  <Check className="w-4 h-4" /> Dispatch approved
+                </span>
+              ) : (
+                <Button
+                  onClick={() => {
+                    approveDispatch(lane, d);
+                    toast.success(`Dispatch approved · ${fmt(d)} units to ${lane.dcCode}`);
+                  }}
+                >
+                  <Check className="w-4 h-4 mr-2" /> Approve dispatch
+                </Button>
+              ))}
+            {rec === "Raise Indent" &&
+              (existingIndent ? (
+                <Link to="/indents" search={{ highlight: existingIndent.id }}>
+                  <Button variant="outline">
+                    <PackagePlus className="w-4 h-4 mr-2" /> View indent
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  onClick={() => {
+                    const qty = Math.max(0, s - d);
+                    const id = raiseIndent(lane, qty);
+                    navigate({ to: "/indents", search: { highlight: id } });
+                  }}
+                >
                   <PackagePlus className="w-4 h-4 mr-2" /> Raise indent
                 </Button>
-              </Link>
-            )}
-            <Button variant="outline">
+              ))}
+            <Button
+              variant="outline"
+              onClick={() => toast.info("Reschedule is a visual preview in this prototype")}
+            >
               <Clock className="w-4 h-4 mr-2" /> Reschedule
             </Button>
           </>
@@ -113,9 +170,7 @@ function LaneDetail() {
               Origin factory
             </div>
             <div className="font-semibold">{lane.factory}</div>
-            <div className="text-xs text-muted-foreground font-data-mono">
-              {lane.factoryCode}
-            </div>
+            <div className="text-xs text-muted-foreground font-data-mono">{lane.factoryCode}</div>
           </div>
         </div>
         <div className="bg-card border border-outline-variant rounded-xl p-4 flex items-center gap-3">
@@ -137,15 +192,11 @@ function LaneDetail() {
             Recommendation
           </div>
           <div className="flex items-center gap-2">
-            {rec === "Dispatch" && (
-              <Badge className="bg-primary text-primary-foreground hover:bg-primary">
-                Dispatch {fmt(d)}
-              </Badge>
-            )}
+            {rec === "Dispatch" && <Badge variant="success">Dispatch {fmt(d)}</Badge>}
             {rec === "Raise Indent" && <Badge variant="destructive">Raise Indent</Badge>}
             {rec === "Watch" && <Badge variant="secondary">Watch</Badge>}
             <span className="text-xs text-muted-foreground">
-              Priority score {lane.priorityScore}
+              Priority score {computePriorityScore(lane, weights)}
             </span>
           </div>
         </div>
@@ -165,9 +216,7 @@ function LaneDetail() {
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
                 Shortage
               </div>
-              <div className="text-2xl font-bold text-destructive font-data-mono">
-                {fmt(s)}
-              </div>
+              <div className="text-2xl font-bold text-destructive font-data-mono">{fmt(s)}</div>
             </div>
           </div>
 
@@ -224,9 +273,7 @@ function LaneDetail() {
               <div className="text-[10px] uppercase text-muted-foreground font-semibold">
                 Dispatch calc.
               </div>
-              <div className="text-lg font-bold font-data-mono text-primary">
-                {fmt(d)}
-              </div>
+              <div className="text-lg font-bold font-data-mono text-primary">{fmt(d)}</div>
             </div>
           </div>
         </section>
@@ -252,10 +299,8 @@ function LaneDetail() {
             <div className="border-t border-outline-variant pt-3">
               <div className="text-xs text-muted-foreground">
                 Engine uses{" "}
-                <span className="font-semibold text-foreground">
-                  MAX(NR APO, Order Loss)
-                </span>{" "}
-                as the demand signal. Right now{" "}
+                <span className="font-semibold text-foreground">MAX(NR APO, Order Loss)</span> as
+                the demand signal. Right now{" "}
                 <span className="font-semibold">
                   {lane.orderLoss > lane.nrApo ? "Order Loss" : "NR APO"}
                 </span>{" "}
@@ -266,9 +311,7 @@ function LaneDetail() {
           <div className="mt-4 p-3 bg-surface-container-low rounded-lg text-xs">
             <div className="flex justify-between mb-1">
               <span className="text-muted-foreground">Allocation</span>
-              <span className="font-data-mono font-semibold">
-                {fmt(lane.allocation)}
-              </span>
+              <span className="font-data-mono font-semibold">{fmt(lane.allocation)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">PDQ</span>
@@ -297,9 +340,12 @@ function LaneDetail() {
 
         {/* Audit trail */}
         <section className="lg:col-span-12 bg-card border border-outline-variant rounded-xl p-5">
-          <h2 className="font-semibold mb-3">Audit Trail</h2>
+          <h2 className="font-semibold mb-1">Audit Trail</h2>
+          <p className="text-xs text-muted-foreground mb-4">
+            Events for this lane, plus system-wide engine runs.
+          </p>
           <ol className="relative border-l border-outline-variant ml-2 space-y-4">
-            {auditEvents.map((e, i) => (
+            {laneAudit.map((e, i) => (
               <li key={i} className="pl-4">
                 <span className="absolute -left-1.5 w-3 h-3 rounded-full bg-primary" />
                 <div className="text-xs text-muted-foreground">{e.at}</div>
@@ -378,14 +424,29 @@ function Sparkline({
   return (
     <div className="w-full overflow-x-auto">
       <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-40">
-        <line x1={actual.length * step} y1="0" x2={actual.length * step} y2={h}
-          stroke="var(--color-outline-variant)" strokeDasharray="3 3" />
-        <path d={path(plan, 0)} stroke="var(--color-muted-foreground)" strokeWidth="1.5"
-          fill="none" strokeDasharray="4 3" />
-        <path d={path(actual, 0)} stroke="var(--color-primary)" strokeWidth="2.5"
-          fill="none" />
-        <path d={path(projected, actual.length - 1)} stroke="var(--color-tertiary)"
-          strokeWidth="2.5" fill="none" strokeDasharray="1 0" />
+        <line
+          x1={actual.length * step}
+          y1="0"
+          x2={actual.length * step}
+          y2={h}
+          stroke="var(--color-outline-variant)"
+          strokeDasharray="3 3"
+        />
+        <path
+          d={path(plan, 0)}
+          stroke="var(--color-muted-foreground)"
+          strokeWidth="1.5"
+          fill="none"
+          strokeDasharray="4 3"
+        />
+        <path d={path(actual, 0)} stroke="var(--color-primary)" strokeWidth="2.5" fill="none" />
+        <path
+          d={path(projected, actual.length - 1)}
+          stroke="var(--color-tertiary)"
+          strokeWidth="2.5"
+          fill="none"
+          strokeDasharray="1 0"
+        />
       </svg>
     </div>
   );

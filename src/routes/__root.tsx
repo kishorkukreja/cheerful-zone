@@ -14,6 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { Switch } from "@/components/ui/switch";
+import { useAppStore, setCompact } from "@/store/app-store";
 
 function NotFoundComponent() {
   return (
@@ -87,8 +89,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Dispatch Cockpit · IDIE" },
       {
         property: "og:description",
-        content:
-          "Standardized, service-driven dispatch prioritization for supply planners.",
+        content: "Standardized, service-driven dispatch prioritization for supply planners.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -136,6 +137,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { compact } = useAppStore();
   return (
     <QueryClientProvider client={queryClient}>
       <SidebarProvider>
@@ -153,9 +155,13 @@ function RootComponent() {
                 </div>
               </div>
               <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="inline-block w-2 h-2 rounded-full bg-success" />
                 Engine run: Today 06:00 IST
               </div>
+              <label className="hidden lg:flex items-center gap-2 pl-3 border-l border-outline-variant text-xs text-muted-foreground cursor-pointer">
+                <Switch checked={compact} onCheckedChange={setCompact} />
+                Compact
+              </label>
               <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-outline-variant">
                 <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-bold">
                   PS

@@ -1,15 +1,34 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
-import { Check, X, Send, Pencil } from "lucide-react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useRef, useState } from "react";
+import { Check, X, Send, Pencil, ArrowUpRight, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import { indents as seed, type Indent } from "@/data/hul-mock";
+import { type Indent } from "@/data/hul-mock";
+import {
+  useAppStore,
+  setIndentStatus,
+  updateIndentQty,
+  bulkApproveIndents,
+} from "@/store/app-store";
+
+type IndentsSearch = {
+  highlight?: string;
+  laneId?: string;
+  dc?: string;
+  factory?: string;
+};
 
 export const Route = createFileRoute("/indents")({
+  validateSearch: (search: Record<string, unknown>): IndentsSearch => ({
+    highlight: typeof search.highlight === "string" ? search.highlight : undefined,
+    laneId: typeof search.laneId === "string" ? search.laneId : undefined,
+    dc: typeof search.dc === "string" ? search.dc : undefined,
+    factory: typeof search.factory === "string" ? search.factory : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Manual Indent Worklist · IDIE" },
@@ -23,18 +42,42 @@ export const Route = createFileRoute("/indents")({
   component: IndentWorklist,
 });
 
-const statusStyles: Record<Indent["status"], string> = {
-  Pending: "bg-amber-100 text-amber-800 border border-amber-200",
-  Approved: "bg-emerald-100 text-emerald-800 border border-emerald-200",
-  Submitted: "bg-primary/10 text-primary border border-primary/30",
-  Rejected: "bg-red-100 text-red-800 border border-red-200",
+const statusVariant: Record<Indent["status"], "warning" | "success" | "default" | "destructive"> = {
+  Pending: "warning",
+  Approved: "success",
+  Submitted: "default",
+  Rejected: "destructive",
 };
 
 function IndentWorklist() {
-  const [rows, setRows] = useState<Indent[]>(seed);
+  const { highlight, laneId, dc, factory } = Route.useSearch();
+  const { indents: rows, compact } = useAppStore();
+  const cellY = compact ? "py-1.5" : "py-3";
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [editing, setEditing] = useState<string | null>(null);
   const [draftQty, setDraftQty] = useState(0);
+  const rowRefs = useRef<Record<string, HTMLTableRowElement | null>>({});
+
+  useEffect(() => {
+    if (highlight && rowRefs.current[highlight]) {
+      rowRefs.current[highlight]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [highlight]);
+
+  const activeFilter = laneId
+    ? { kind: "lane" as const, value: laneId }
+    : dc
+      ? { kind: "dc" as const, value: dc }
+      : factory
+        ? { kind: "factory" as const, value: factory }
+        : null;
+
+  const visible = rows.filter((r) => {
+    if (laneId) return r.laneId === laneId;
+    if (dc) return r.dc === dc;
+    if (factory) return r.factory === factory;
+    return true;
+  });
 
   const counts = {
     pending: rows.filter((r) => r.status === "Pending").length,
@@ -43,15 +86,10 @@ function IndentWorklist() {
     rejected: rows.filter((r) => r.status === "Rejected").length,
   };
 
-  const setStatus = (id: string, status: Indent["status"], msg: string) => {
-    setRows((rs) => rs.map((r) => (r.id === id ? { ...r, status } : r)));
-    toast.success(msg);
-  };
-
   const bulkApprove = () => {
     const ids = Object.keys(selected).filter((k) => selected[k]);
     if (ids.length === 0) return toast.info("No indents selected");
-    setRows((rs) => rs.map((r) => (ids.includes(r.id) ? { ...r, status: "Approved" } : r)));
+    bulkApproveIndents(ids);
     setSelected({});
     toast.success(`Approved ${ids.length} indents`);
   };
@@ -74,23 +112,37 @@ function IndentWorklist() {
         }
       />
 
+      {activeFilter && (
+        <div className="flex items-center justify-between bg-secondary-container text-on-secondary-container rounded-lg px-4 py-2 mb-4 text-xs">
+          <span>
+            Filtered to{" "}
+            {activeFilter.kind === "lane" ? "lane" : activeFilter.kind === "dc" ? "DC" : "factory"}{" "}
+            <span className="font-data-mono font-semibold">{activeFilter.value}</span>
+          </span>
+          <Link
+            to="/indents"
+            className="inline-flex items-center gap-1 hover:underline font-semibold"
+          >
+            Clear filter <XCircle className="w-3 h-3" />
+          </Link>
+        </div>
+      )}
+
       <section className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
         {[
-          { label: "Pending", value: counts.pending, tone: "text-amber-600" },
-          { label: "Approved today", value: counts.approved, tone: "text-emerald-600" },
+          { label: "Pending", value: counts.pending, tone: "text-tertiary" },
+          { label: "Approved today", value: counts.approved, tone: "text-success" },
           { label: "Submitted today", value: counts.submitted, tone: "text-primary" },
           { label: "Rejected today", value: counts.rejected, tone: "text-destructive" },
         ].map((k) => (
           <div
             key={k.label}
-            className="bg-card border border-outline-variant rounded-xl p-4"
+            className={`bg-card border border-outline-variant rounded-xl ${compact ? "p-3" : "p-4"} transition-all`}
           >
             <div className="text-[10px] uppercase tracking-wider font-semibold text-on-surface-variant">
               {k.label}
             </div>
-            <div className={`text-3xl font-bold mt-1 font-data-mono ${k.tone}`}>
-              {k.value}
-            </div>
+            <div className={`text-3xl font-bold mt-1 font-data-mono ${k.tone}`}>{k.value}</div>
           </div>
         ))}
       </section>
@@ -99,10 +151,22 @@ function IndentWorklist() {
         <div className="p-4 border-b border-outline-variant">
           <h2 className="font-semibold">Recommended indents</h2>
           <p className="text-xs text-muted-foreground">
-            {rows.length} suggestions across HUL factories · Reserved-stock use requires override.
+            {visible.length} suggestion{visible.length === 1 ? "" : "s"} across HUL factories ·
+            Reserved-stock use requires override.
           </p>
         </div>
-        <div className="overflow-x-auto">
+
+        {visible.length === 0 && (
+          <div className="p-10 text-center text-sm text-muted-foreground">
+            No indents match this filter right now.{" "}
+            <Link to="/indents" className="text-primary hover:underline">
+              Clear filter
+            </Link>
+          </div>
+        )}
+
+        {/* Desktop table */}
+        <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-surface-container-low text-on-surface-variant text-[11px] uppercase tracking-wider">
@@ -117,131 +181,224 @@ function IndentWorklist() {
               </tr>
             </thead>
             <tbody className="divide-y divide-outline-variant">
-              {rows.map((r) => (
-                <tr key={r.id} className="hover:bg-surface-container-low align-top">
-                  <td className="px-3 py-3">
-                    <Checkbox
-                      checked={!!selected[r.id]}
-                      onCheckedChange={(v) =>
-                        setSelected((s) => ({ ...s, [r.id]: !!v }))
-                      }
-                      disabled={r.status !== "Pending"}
-                    />
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="font-data-mono font-semibold">{r.id}</div>
-                    <div className="text-[11px] text-muted-foreground">{r.createdAt}</div>
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="font-semibold leading-tight">{r.cbu}</div>
-                    <div className="text-[11px] text-muted-foreground">
-                      {r.factory} → {r.dc}
-                    </div>
-                  </td>
-                  <td className="px-3 py-3 text-right font-data-mono">
-                    {editing === r.id ? (
-                      <div className="flex items-center gap-1 justify-end">
-                        <Input
-                          type="number"
-                          value={draftQty}
-                          onChange={(e) => setDraftQty(Number(e.target.value))}
-                          className="h-7 w-24 text-right font-data-mono"
-                        />
-                        <Button
-                          size="sm"
-                          className="h-7 px-2"
-                          onClick={() => {
-                            setRows((rs) =>
-                              rs.map((x) =>
-                                x.id === r.id ? { ...x, requiredQty: draftQty } : x,
-                              ),
-                            );
-                            setEditing(null);
-                            toast.success(`Quantity updated to ${draftQty.toLocaleString("en-IN")}`);
-                          }}
-                        >
-                          Save
-                        </Button>
+              {visible.map((r) => {
+                const isHighlighted = r.id === highlight;
+                return (
+                  <tr
+                    key={r.id}
+                    ref={(el) => {
+                      rowRefs.current[r.id] = el;
+                    }}
+                    className={`hover:bg-surface-container-low align-top transition-colors ${
+                      isHighlighted ? "bg-primary/5 ring-1 ring-inset ring-primary/40" : ""
+                    }`}
+                  >
+                    <td className={`px-3 ${cellY}`}>
+                      <Checkbox
+                        checked={!!selected[r.id]}
+                        onCheckedChange={(v) => setSelected((s) => ({ ...s, [r.id]: !!v }))}
+                        disabled={r.status !== "Pending"}
+                      />
+                    </td>
+                    <td className={`px-3 ${cellY}`}>
+                      <div className="font-data-mono font-semibold">{r.id}</div>
+                      <div className="text-[11px] text-muted-foreground">{r.createdAt}</div>
+                    </td>
+                    <td className={`px-3 ${cellY}`}>
+                      <div className="font-semibold leading-tight">{r.cbu}</div>
+                      <div className="text-[11px] text-muted-foreground">
+                        {r.factory} → {r.dc}
                       </div>
-                    ) : (
-                      <span className="font-semibold">
-                        {r.requiredQty.toLocaleString("en-IN")}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-3 py-3">
-                    <Badge variant="outline" className="font-normal">
-                      {r.suggestedSource}
-                    </Badge>
-                  </td>
-                  <td className="px-3 py-3 max-w-xs">
-                    <span className="text-xs text-on-surface-variant">
-                      {r.justification}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold uppercase ${statusStyles[r.status]}`}
-                    >
-                      {r.status}
-                    </span>
-                  </td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      {r.status === "Pending" && (
-                        <>
+                      <Link
+                        to="/lanes/$laneId"
+                        params={{ laneId: r.laneId }}
+                        className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5 mt-0.5"
+                      >
+                        View lane <ArrowUpRight className="w-2.5 h-2.5" />
+                      </Link>
+                    </td>
+                    <td className={`px-3 ${cellY} text-right font-data-mono`}>
+                      {editing === r.id ? (
+                        <div className="flex items-center gap-1 justify-end">
+                          <Input
+                            type="number"
+                            value={draftQty}
+                            onChange={(e) => setDraftQty(Number(e.target.value))}
+                            className="h-7 w-24 text-right font-data-mono"
+                          />
                           <Button
                             size="sm"
-                            variant="outline"
-                            className="h-7 px-2 text-[11px]"
+                            className="h-7 px-2"
                             onClick={() => {
-                              setEditing(r.id);
-                              setDraftQty(r.requiredQty);
+                              updateIndentQty(r.id, draftQty);
+                              setEditing(null);
+                              toast.success(
+                                `Quantity updated to ${draftQty.toLocaleString("en-IN")}`,
+                              );
                             }}
                           >
-                            <Pencil className="w-3 h-3" />
+                            Save
                           </Button>
+                        </div>
+                      ) : (
+                        <span className="font-semibold">
+                          {r.requiredQty.toLocaleString("en-IN")}
+                        </span>
+                      )}
+                    </td>
+                    <td className={`px-3 ${cellY}`}>
+                      <Badge variant="outline" className="font-normal">
+                        {r.suggestedSource}
+                      </Badge>
+                    </td>
+                    <td className={`px-3 ${cellY} max-w-xs`}>
+                      <span className="text-xs text-on-surface-variant">{r.justification}</span>
+                    </td>
+                    <td className={`px-3 ${cellY}`}>
+                      <Badge variant={statusVariant[r.status]} className="uppercase">
+                        {r.status}
+                      </Badge>
+                    </td>
+                    <td className={`px-3 ${cellY}`}>
+                      <div className="flex items-center justify-end gap-1">
+                        {r.status === "Pending" && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 px-2 text-[11px]"
+                              onClick={() => {
+                                setEditing(r.id);
+                                setDraftQty(r.requiredQty);
+                              }}
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              className="h-7 px-2 text-[11px]"
+                              onClick={() => {
+                                setIndentStatus(r.id, "Approved");
+                                toast.success(`${r.id} approved`);
+                              }}
+                            >
+                              <Check className="w-3 h-3 mr-1" /> Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 px-2 text-[11px] text-destructive hover:text-destructive"
+                              onClick={() => {
+                                setIndentStatus(r.id, "Rejected");
+                                toast.success(`${r.id} rejected`);
+                              }}
+                            >
+                              <X className="w-3 h-3" />
+                            </Button>
+                          </>
+                        )}
+                        {r.status === "Approved" && (
                           <Button
                             size="sm"
                             className="h-7 px-2 text-[11px]"
-                            onClick={() =>
-                              setStatus(r.id, "Approved", `${r.id} approved`)
-                            }
+                            onClick={() => {
+                              setIndentStatus(r.id, "Submitted");
+                              toast.success(`${r.id} submitted to ERP`);
+                            }}
                           >
-                            <Check className="w-3 h-3 mr-1" /> Approve
+                            <Send className="w-3 h-3 mr-1" /> Submit
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="h-7 px-2 text-[11px] text-destructive hover:text-destructive"
-                            onClick={() =>
-                              setStatus(r.id, "Rejected", `${r.id} rejected`)
-                            }
-                          >
-                            <X className="w-3 h-3" />
-                          </Button>
-                        </>
-                      )}
-                      {r.status === "Approved" && (
-                        <Button
-                          size="sm"
-                          className="h-7 px-2 text-[11px]"
-                          onClick={() =>
-                            setStatus(r.id, "Submitted", `${r.id} submitted to ERP`)
-                          }
-                        >
-                          <Send className="w-3 h-3 mr-1" /> Submit
-                        </Button>
-                      )}
-                      {(r.status === "Submitted" || r.status === "Rejected") && (
-                        <span className="text-[11px] text-muted-foreground pr-2">—</span>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                        )}
+                        {(r.status === "Submitted" || r.status === "Rejected") && (
+                          <span className="text-[11px] text-muted-foreground pr-2">—</span>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+        </div>
+
+        {/* Mobile list cards */}
+        <div className="md:hidden divide-y divide-outline-variant">
+          {visible.map((r) => {
+            const isHighlighted = r.id === highlight;
+            return (
+              <div
+                key={r.id}
+                className={`p-4 ${isHighlighted ? "bg-primary/5 ring-1 ring-inset ring-primary/40" : ""}`}
+              >
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <div>
+                    <div className="font-data-mono font-semibold text-sm">{r.id}</div>
+                    <div className="text-[11px] text-muted-foreground">{r.createdAt}</div>
+                  </div>
+                  <Badge variant={statusVariant[r.status]} className="uppercase">
+                    {r.status}
+                  </Badge>
+                </div>
+                <div className="font-semibold leading-tight">{r.cbu}</div>
+                <div className="text-[11px] text-muted-foreground mb-1">
+                  {r.factory} → {r.dc}
+                </div>
+                <Link
+                  to="/lanes/$laneId"
+                  params={{ laneId: r.laneId }}
+                  className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5 mb-2"
+                >
+                  View lane <ArrowUpRight className="w-2.5 h-2.5" />
+                </Link>
+                <div className="flex items-center justify-between text-sm mb-2">
+                  <span className="font-semibold font-data-mono">
+                    {r.requiredQty.toLocaleString("en-IN")} units
+                  </span>
+                  <Badge variant="outline" className="font-normal">
+                    {r.suggestedSource}
+                  </Badge>
+                </div>
+                <p className="text-xs text-on-surface-variant mb-3">{r.justification}</p>
+                {r.status === "Pending" && (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => {
+                        setIndentStatus(r.id, "Approved");
+                        toast.success(`${r.id} approved`);
+                      }}
+                    >
+                      <Check className="w-3 h-3 mr-1" /> Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="text-destructive"
+                      onClick={() => {
+                        setIndentStatus(r.id, "Rejected");
+                        toast.success(`${r.id} rejected`);
+                      }}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                )}
+                {r.status === "Approved" && (
+                  <Button
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      setIndentStatus(r.id, "Submitted");
+                      toast.success(`${r.id} submitted to ERP`);
+                    }}
+                  >
+                    <Send className="w-3 h-3 mr-1" /> Submit
+                  </Button>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

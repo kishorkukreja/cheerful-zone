@@ -9,7 +9,8 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { lanes } from "@/data/hul-mock";
+import { lanes, computePriorityScore } from "@/data/hul-mock";
+import { useAppStore, setWeights as commitWeights } from "@/store/app-store";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -26,10 +27,15 @@ export const Route = createFileRoute("/admin")({
 });
 
 const buckets = [
-  { name: "ATP", rule: "Always consumable", defaultOn: true, tone: "text-emerald-600" },
+  { name: "ATP", rule: "Always consumable", defaultOn: true, tone: "text-success" },
   { name: "QC Stock", rule: "Consume post-release only", defaultOn: true, tone: "text-primary" },
   { name: "Reserved", rule: "Requires planner override", defaultOn: false, tone: "text-tertiary" },
-  { name: "Production Req.", rule: "Consume only after buckets 1–3", defaultOn: true, tone: "text-secondary-fixed-dim" },
+  {
+    name: "Production Req.",
+    rule: "Consume only after buckets 1–3",
+    defaultOn: true,
+    tone: "text-secondary-fixed-dim",
+  },
 ];
 
 const users = [
@@ -42,7 +48,12 @@ const users = [
 
 const integrations = [
   { name: "APO", desc: "Net Requirement, Allocation, PDQ", status: "Connected", last: "2 min ago" },
-  { name: "ERP (SAP S/4)", desc: "ATP, QC, Reserved stock", status: "Connected", last: "1 min ago" },
+  {
+    name: "ERP (SAP S/4)",
+    desc: "ATP, QC, Reserved stock",
+    status: "Connected",
+    last: "1 min ago",
+  },
   { name: "OMS", desc: "Customer order loss feed", status: "Connected", last: "6 min ago" },
   { name: "WMS", desc: "DC inbound visibility", status: "Degraded", last: "18 min ago" },
   { name: "TMS", desc: "Transport lead time", status: "Connected", last: "4 min ago" },
@@ -50,8 +61,9 @@ const integrations = [
 ];
 
 function AdminConsole() {
+  const { weights: appliedWeights } = useAppStore();
   const [bucketState, setBucketState] = useState(buckets.map((b) => b.defaultOn));
-  const [weights, setWeights] = useState({ orderLoss: 40, cover: 25, tier: 20, criticality: 15 });
+  const [weights, setWeights] = useState(appliedWeights);
   const [laneQuery, setLaneQuery] = useState("");
 
   const filteredLanes = lanes.filter(
@@ -62,16 +74,22 @@ function AdminConsole() {
   );
 
   const total = weights.orderLoss + weights.cover + weights.tier + weights.criticality;
+  const isDirty = JSON.stringify(weights) !== JSON.stringify(appliedWeights);
+
+  const saveChanges = () => {
+    commitWeights(weights);
+    toast.success("Configuration saved — Dispatch Cockpit ranking updated");
+  };
 
   return (
     <div className="p-4 md:p-6 lg:p-8 max-w-[1600px] mx-auto">
       <PageHeader
         eyebrow="Configuration"
         title="Admin Console"
-        subtitle="Configure engine behaviour without code. All changes are audited and take effect on the next engine run."
+        subtitle="Configure engine behaviour without code. Priority weight changes apply to the Cockpit ranking as soon as you save."
         actions={
-          <Button onClick={() => toast.success("Configuration saved — takes effect on next run at 07:00 IST")}>
-            <Save className="w-4 h-4 mr-2" /> Save changes
+          <Button onClick={saveChanges} disabled={!isDirty || total !== 100}>
+            <Save className="w-4 h-4 mr-2" /> Save changes{isDirty ? " ●" : ""}
           </Button>
         }
       />
@@ -91,13 +109,16 @@ function AdminConsole() {
             <div className="p-4 border-b border-outline-variant">
               <h3 className="font-semibold">Mitigation waterfall — consumption rules</h3>
               <p className="text-xs text-muted-foreground">
-                Toggle whether each bucket is consumable by default when the engine runs Dispatch Calc.
+                Toggle whether each bucket is consumable by default when the engine runs Dispatch
+                Calc.
               </p>
             </div>
             <div className="divide-y divide-outline-variant">
               {buckets.map((b, i) => (
                 <div key={b.name} className="p-4 flex items-center gap-4">
-                  <div className={`w-10 h-10 rounded-lg bg-surface-container-low grid place-items-center ${b.tone} font-bold`}>
+                  <div
+                    className={`w-10 h-10 rounded-lg bg-surface-container-low grid place-items-center ${b.tone} font-bold`}
+                  >
                     {i + 1}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -130,7 +151,15 @@ function AdminConsole() {
             <div className="bg-card border border-outline-variant rounded-xl p-5">
               <h3 className="font-semibold mb-1">Priority score weights</h3>
               <p className="text-xs text-muted-foreground mb-4">
-                Total: <span className={total === 100 ? "text-emerald-600 font-semibold" : "text-destructive font-semibold"}>{total}%</span> (must equal 100%)
+                Total:{" "}
+                <span
+                  className={
+                    total === 100 ? "text-success font-semibold" : "text-destructive font-semibold"
+                  }
+                >
+                  {total}%
+                </span>{" "}
+                (must equal 100%)
               </p>
               <div className="space-y-5">
                 <WeightSlider
@@ -156,32 +185,43 @@ function AdminConsole() {
               </div>
             </div>
             <div className="bg-card border border-outline-variant rounded-xl p-5">
-              <h3 className="font-semibold mb-3">Live ranking preview</h3>
+              <div className="flex items-center justify-between mb-1">
+                <h3 className="font-semibold">Live ranking preview</h3>
+                {isDirty && (
+                  <span className="text-[10px] uppercase font-bold text-tertiary">Unsaved</span>
+                )}
+              </div>
               <p className="text-xs text-muted-foreground mb-4">
-                Top 5 lanes recomputed with your weights.
+                Top 5 lanes recomputed live as you move the sliders — this is the exact formula the
+                Cockpit uses once saved.
               </p>
               <ol className="space-y-2">
-                {[...lanes].sort((a, b) => b.priorityScore - a.priorityScore).slice(0, 5).map((l, i) => (
-                  <li
-                    key={l.id}
-                    className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="w-6 h-6 rounded bg-primary text-primary-foreground text-xs font-bold grid place-items-center">
-                        {i + 1}
-                      </span>
-                      <div>
-                        <div className="font-semibold text-sm">{l.cbu}</div>
-                        <div className="text-[11px] text-muted-foreground">
-                          {l.factoryCode} → {l.dcCode}
+                {[...lanes]
+                  .sort(
+                    (a, b) => computePriorityScore(b, weights) - computePriorityScore(a, weights),
+                  )
+                  .slice(0, 5)
+                  .map((l, i) => (
+                    <li
+                      key={l.id}
+                      className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="w-6 h-6 rounded bg-primary text-primary-foreground text-xs font-bold grid place-items-center">
+                          {i + 1}
+                        </span>
+                        <div>
+                          <div className="font-semibold text-sm">{l.cbu}</div>
+                          <div className="text-[11px] text-muted-foreground">
+                            {l.factoryCode} → {l.dcCode}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <span className="font-data-mono font-bold text-primary">
-                      {l.priorityScore}
-                    </span>
-                  </li>
-                ))}
+                      <span className="font-data-mono font-bold text-primary">
+                        {computePriorityScore(l, weights)}
+                      </span>
+                    </li>
+                  ))}
               </ol>
             </div>
           </div>
@@ -223,9 +263,7 @@ function AdminConsole() {
                       <td className="px-4 py-3">{l.factory}</td>
                       <td className="px-4 py-3">{l.dc}</td>
                       <td className="px-4 py-3">{l.cbu}</td>
-                      <td className="px-4 py-3 text-right font-data-mono">
-                        {l.transitDays}d
-                      </td>
+                      <td className="px-4 py-3 text-right font-data-mono">{l.transitDays}d</td>
                       <td className="px-4 py-3 text-right">
                         <Switch defaultChecked />
                       </td>
@@ -255,7 +293,10 @@ function AdminConsole() {
               {users.map((u) => (
                 <div key={u.email} className="p-4 flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-primary/10 text-primary grid place-items-center font-bold">
-                    {u.name.split(" ").map((n) => n[0]).join("")}
+                    {u.name
+                      .split(" ")
+                      .map((n) => n[0])
+                      .join("")}
                   </div>
                   <div className="flex-1">
                     <div className="font-semibold">{u.name}</div>
@@ -283,7 +324,9 @@ function AdminConsole() {
                       <div className="font-semibold">{i.name}</div>
                       <div className="text-xs text-muted-foreground">{i.desc}</div>
                     </div>
-                    <span className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase ${ok ? "text-emerald-600" : "text-tertiary"}`}>
+                    <span
+                      className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase ${ok ? "text-success" : "text-tertiary"}`}
+                    >
                       {ok ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                       {i.status}
                     </span>
@@ -322,13 +365,7 @@ function WeightSlider({
         <span className="font-medium">{label}</span>
         <span className="font-data-mono font-bold">{value}%</span>
       </div>
-      <Slider
-        value={[value]}
-        onValueChange={(v) => onChange(v[0])}
-        min={0}
-        max={100}
-        step={5}
-      />
+      <Slider value={[value]} onValueChange={(v) => onChange(v[0])} min={0} max={100} step={5} />
     </div>
   );
 }
