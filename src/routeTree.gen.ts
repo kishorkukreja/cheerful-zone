@@ -9,38 +9,99 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as StockRouteImport } from './routes/stock'
+import { Route as IndentsRouteImport } from './routes/indents'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LanesLaneIdRouteImport } from './routes/lanes.$laneId'
 
+const StockRoute = StockRouteImport.update({
+  id: '/stock',
+  path: '/stock',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndentsRoute = IndentsRouteImport.update({
+  id: '/indents',
+  path: '/indents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LanesLaneIdRoute = LanesLaneIdRouteImport.update({
+  id: '/lanes/$laneId',
+  path: '/lanes/$laneId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/indents': typeof IndentsRoute
+  '/stock': typeof StockRoute
+  '/lanes/$laneId': typeof LanesLaneIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/indents': typeof IndentsRoute
+  '/stock': typeof StockRoute
+  '/lanes/$laneId': typeof LanesLaneIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/indents': typeof IndentsRoute
+  '/stock': typeof StockRoute
+  '/lanes/$laneId': typeof LanesLaneIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/admin' | '/indents' | '/stock' | '/lanes/$laneId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/admin' | '/indents' | '/stock' | '/lanes/$laneId'
+  id: '__root__' | '/' | '/admin' | '/indents' | '/stock' | '/lanes/$laneId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  IndentsRoute: typeof IndentsRoute
+  StockRoute: typeof StockRoute
+  LanesLaneIdRoute: typeof LanesLaneIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/stock': {
+      id: '/stock'
+      path: '/stock'
+      fullPath: '/stock'
+      preLoaderRoute: typeof StockRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/indents': {
+      id: '/indents'
+      path: '/indents'
+      fullPath: '/indents'
+      preLoaderRoute: typeof IndentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +109,22 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lanes/$laneId': {
+      id: '/lanes/$laneId'
+      path: '/lanes/$laneId'
+      fullPath: '/lanes/$laneId'
+      preLoaderRoute: typeof LanesLaneIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  IndentsRoute: IndentsRoute,
+  StockRoute: StockRoute,
+  LanesLaneIdRoute: LanesLaneIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
