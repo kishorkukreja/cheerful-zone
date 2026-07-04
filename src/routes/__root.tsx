@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { AgentCopilot } from "@/components/agent-copilot";
 import { Toaster } from "@/components/ui/sonner";
 import { Switch } from "@/components/ui/switch";
 import { useAppStore, setCompact } from "@/store/app-store";
@@ -198,6 +199,7 @@ function RootComponent() {
           </div>
         </div>
         <Toaster richColors position="top-right" />
+        <AgentCopilot />
       </SidebarProvider>
     </QueryClientProvider>
   );
