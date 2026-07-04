@@ -140,10 +140,10 @@ function IndentWorklist() {
             className={`bg-card border border-outline-variant rounded-xl ${compact ? "p-3" : "p-4"} transition-[padding] duration-200 ease-in-out animate-in fade-in slide-in-from-bottom-1 fill-mode-both`}
             style={{ animationDuration: "300ms", animationDelay: `${i * 50}ms` }}
           >
-            <div className="text-[10px] uppercase tracking-wider font-semibold text-on-surface-variant">
+            <div className="text-3xs uppercase tracking-wider font-semibold text-on-surface-variant">
               {k.label}
             </div>
-            <div className={`text-3xl font-bold mt-1 font-data-mono ${k.tone}`}>{k.value}</div>
+            <div className={`text-2xl font-bold mt-1 font-data-mono ${k.tone}`}>{k.value}</div>
           </div>
         ))}
       </section>
@@ -170,7 +170,7 @@ function IndentWorklist() {
         <div className="overflow-x-auto hidden md:block">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-surface-container-low text-on-surface-variant text-[11px] uppercase tracking-wider">
+              <tr className="bg-surface-container-low text-on-surface-variant text-3xs uppercase tracking-wider">
                 <th className="px-3 py-2 w-8"></th>
                 <th className="px-3 py-2 text-left font-semibold">Indent</th>
                 <th className="px-3 py-2 text-left font-semibold">Lane</th>
@@ -203,17 +203,17 @@ function IndentWorklist() {
                     </td>
                     <td className={`px-3 ${cellY}`}>
                       <div className="font-data-mono font-semibold">{r.id}</div>
-                      <div className="text-[11px] text-muted-foreground">{r.createdAt}</div>
+                      <div className="text-3xs text-muted-foreground">{r.createdAt}</div>
                     </td>
                     <td className={`px-3 ${cellY}`}>
                       <div className="font-semibold leading-tight">{r.cbu}</div>
-                      <div className="text-[11px] text-muted-foreground">
+                      <div className="text-3xs text-muted-foreground">
                         {r.factory} → {r.dc}
                       </div>
                       <Link
                         to="/lanes/$laneId"
                         params={{ laneId: r.laneId }}
-                        className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5 mt-0.5"
+                        className="text-3xs text-primary hover:underline inline-flex items-center gap-0.5 mt-0.5"
                       >
                         View lane <ArrowUpRight className="w-2.5 h-2.5" />
                       </Link>
@@ -267,7 +267,7 @@ function IndentWorklist() {
                             <Button
                               size="sm"
                               variant="outline"
-                              className="h-7 px-2 text-[11px]"
+                              className="h-7 px-2 text-3xs"
                               onClick={() => {
                                 setEditing(r.id);
                                 setDraftQty(r.requiredQty);
@@ -277,7 +277,7 @@ function IndentWorklist() {
                             </Button>
                             <Button
                               size="sm"
-                              className="h-7 px-2 text-[11px]"
+                              className="h-7 px-2 text-3xs"
                               onClick={() => {
                                 setIndentStatus(r.id, "Approved");
                                 toast.success(`${r.id} approved`);
@@ -288,7 +288,7 @@ function IndentWorklist() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-7 px-2 text-[11px] text-destructive hover:text-destructive"
+                              className="h-7 px-2 text-3xs text-destructive hover:text-destructive"
                               onClick={() => {
                                 setIndentStatus(r.id, "Rejected");
                                 toast.success(`${r.id} rejected`);
@@ -301,7 +301,7 @@ function IndentWorklist() {
                         {r.status === "Approved" && (
                           <Button
                             size="sm"
-                            className="h-7 px-2 text-[11px]"
+                            className="h-7 px-2 text-3xs"
                             onClick={() => {
                               setIndentStatus(r.id, "Submitted");
                               toast.success(`${r.id} submitted to ERP`);
@@ -311,7 +311,7 @@ function IndentWorklist() {
                           </Button>
                         )}
                         {(r.status === "Submitted" || r.status === "Rejected") && (
-                          <span className="text-[11px] text-muted-foreground pr-2">—</span>
+                          <span className="text-3xs text-muted-foreground pr-2">—</span>
                         )}
                       </div>
                     </td>
@@ -334,20 +334,20 @@ function IndentWorklist() {
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div>
                     <div className="font-data-mono font-semibold text-sm">{r.id}</div>
-                    <div className="text-[11px] text-muted-foreground">{r.createdAt}</div>
+                    <div className="text-3xs text-muted-foreground">{r.createdAt}</div>
                   </div>
                   <Badge variant={statusVariant[r.status]} className="uppercase">
                     {r.status}
                   </Badge>
                 </div>
                 <div className="font-semibold leading-tight">{r.cbu}</div>
-                <div className="text-[11px] text-muted-foreground mb-1">
+                <div className="text-3xs text-muted-foreground mb-1">
                   {r.factory} → {r.dc}
                 </div>
                 <Link
                   to="/lanes/$laneId"
                   params={{ laneId: r.laneId }}
-                  className="text-[11px] text-primary hover:underline inline-flex items-center gap-0.5 mb-2"
+                  className="text-3xs text-primary hover:underline inline-flex items-center gap-0.5 mb-2"
                 >
                   View lane <ArrowUpRight className="w-2.5 h-2.5" />
                 </Link>

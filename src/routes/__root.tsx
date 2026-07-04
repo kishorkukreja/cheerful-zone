@@ -94,11 +94,31 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Dispatch Cockpit · IDIE" },
-      { name: "description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
-      { property: "og:description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
-      { name: "twitter:description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/1b429804-3131-45ed-94f7-f055a587a592" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/1b429804-3131-45ed-94f7-f055a587a592" },
+      {
+        name: "description",
+        content:
+          "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers.",
+      },
+      {
+        property: "og:description",
+        content:
+          "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/1b429804-3131-45ed-94f7-f055a587a592",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/1b429804-3131-45ed-94f7-f055a587a592",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -147,7 +167,7 @@ function RootComponent() {
             <header className="h-14 flex items-center gap-3 border-b border-outline-variant bg-card px-3 md:px-5 sticky top-0 z-30">
               <SidebarTrigger />
               <div className="flex-1 min-w-0">
-                <div className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
+                <div className="text-3xs uppercase tracking-wider text-muted-foreground font-semibold">
                   Hindustan Unilever · Supply Chain Planning
                 </div>
                 <div className="text-sm font-semibold truncate">

@@ -153,16 +153,16 @@ function StockAnalyser() {
               }}
             >
               {/* Faint quadrant labels give geographic orientation without a literal map image */}
-              <span className="absolute top-3 left-4 text-[10px] font-bold uppercase tracking-wider text-outline-variant">
+              <span className="absolute top-3 left-4 text-3xs font-bold uppercase tracking-wider text-outline-variant">
                 North
               </span>
-              <span className="absolute bottom-3 left-4 text-[10px] font-bold uppercase tracking-wider text-outline-variant">
+              <span className="absolute bottom-3 left-4 text-3xs font-bold uppercase tracking-wider text-outline-variant">
                 West
               </span>
-              <span className="absolute bottom-3 right-4 text-[10px] font-bold uppercase tracking-wider text-outline-variant">
+              <span className="absolute bottom-3 right-4 text-3xs font-bold uppercase tracking-wider text-outline-variant">
                 South
               </span>
-              <span className="absolute top-3 right-4 text-[10px] font-bold uppercase tracking-wider text-outline-variant">
+              <span className="absolute top-3 right-4 text-3xs font-bold uppercase tracking-wider text-outline-variant">
                 East
               </span>
               {nodes.map((n) => {
@@ -198,7 +198,7 @@ function StockAnalyser() {
                         />
                       </button>
                       <div className="absolute top-5 left-0 bg-card border border-outline-variant rounded-xl shadow-lg p-3 w-56 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 group-focus-within:opacity-100 group-focus-within:scale-100 transition-[opacity,transform] duration-150 ease-out origin-top-left z-20 pointer-events-none">
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+                        <div className="text-3xs uppercase tracking-wider text-muted-foreground font-semibold">
                           {n.type} · {n.id}
                         </div>
                         <div className="font-bold mb-1">{n.name}</div>
@@ -215,7 +215,7 @@ function StockAnalyser() {
                             style={{ width: `${n.stockPct}%` }}
                           />
                         </div>
-                        <div className="flex justify-between text-[10px] text-muted-foreground mt-2">
+                        <div className="flex justify-between text-3xs text-muted-foreground mt-2">
                           <span>Cover · {n.coverageDays}d</span>
                           <span>QC · {n.qcPending}</span>
                         </div>
@@ -240,7 +240,7 @@ function StockAnalyser() {
             <div className="overflow-x-auto hidden md:block">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-surface-container-low text-on-surface-variant text-[11px] uppercase tracking-wider">
+                  <tr className="bg-surface-container-low text-on-surface-variant text-3xs uppercase tracking-wider">
                     <th className="px-4 py-3 text-left font-semibold">Node</th>
                     <th className="px-4 py-3 text-left font-semibold">Type</th>
                     <th className="px-4 py-3 text-left font-semibold">Availability</th>
@@ -257,11 +257,11 @@ function StockAnalyser() {
                       <tr key={n.id} className="hover:bg-surface-container-low">
                         <td className="px-4 py-3">
                           <div className="font-bold">{n.name}</div>
-                          <div className="text-[11px] text-muted-foreground">{n.city}</div>
+                          <div className="text-3xs text-muted-foreground">{n.city}</div>
                         </td>
                         <td className="px-4 py-3">
                           <span
-                            className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
+                            className={`text-3xs font-bold uppercase px-2 py-0.5 rounded ${
                               n.type === "Factory"
                                 ? "bg-secondary-container text-on-secondary-container"
                                 : "bg-outline-variant text-on-surface-variant"
@@ -277,9 +277,7 @@ function StockAnalyser() {
                               style={{ width: `${n.stockPct}%` }}
                             />
                           </div>
-                          <div className="text-[10px] text-muted-foreground mt-1">
-                            {n.stockPct}%
-                          </div>
+                          <div className="text-3xs text-muted-foreground mt-1">{n.stockPct}%</div>
                         </td>
                         <td className="px-4 py-3 text-right font-data-mono">
                           {n.qcPending.toLocaleString("en-IN")} u
@@ -320,10 +318,10 @@ function StockAnalyser() {
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <div>
                         <div className="font-bold">{n.name}</div>
-                        <div className="text-[11px] text-muted-foreground">{n.city}</div>
+                        <div className="text-3xs text-muted-foreground">{n.city}</div>
                       </div>
                       <span
-                        className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded shrink-0 ${
+                        className={`text-3xs font-bold uppercase px-2 py-0.5 rounded shrink-0 ${
                           n.type === "Factory"
                             ? "bg-secondary-container text-on-secondary-container"
                             : "bg-outline-variant text-on-surface-variant"
@@ -412,7 +410,7 @@ function StockAnalyser() {
               </svg>
               <div className="absolute text-center">
                 <div className="text-3xl font-bold">78%</div>
-                <div className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
+                <div className="text-3xs uppercase font-bold tracking-wider text-muted-foreground">
                   Optimal
                 </div>
               </div>
@@ -428,7 +426,7 @@ function StockAnalyser() {
           <div className="bg-card border border-outline-variant rounded-xl p-5 shadow-sm">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-semibold">Stock Ageing</h3>
-              <span className="text-[10px] font-bold text-primary uppercase">Daily view</span>
+              <span className="text-3xs font-bold text-primary uppercase">Daily view</span>
             </div>
             <div className="space-y-4">
               <AgeRow label="0–30 days" units="12.5k" pct={75} tone="bg-primary" />
@@ -528,13 +526,13 @@ function KpiCard({
       style={{ animationDelay: `${index * 50}ms` }}
     >
       <div className="flex justify-between items-start">
-        <span className="text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold">
+        <span className="text-3xs uppercase tracking-wider text-on-surface-variant font-semibold">
           {label}
         </span>
         <Icon className={`w-4 h-4 ${tone}`} />
       </div>
       <div>
-        <div className={`text-2xl font-bold ${valueTone ?? ""}`}>{value}</div>
+        <div className={`text-2xl font-bold font-data-mono ${valueTone ?? ""}`}>{value}</div>
         <div className="mt-1">{delta}</div>
       </div>
     </div>
@@ -609,7 +607,7 @@ function RiskRow({
     <div className={`p-3 rounded-lg border-l-4 ${border}`}>
       <div className="flex justify-between items-start mb-2">
         <div className="font-semibold text-sm">{name}</div>
-        <span className={`font-bold text-[10px] uppercase ${daysColor}`}>{days} days left</span>
+        <span className={`font-bold text-3xs uppercase ${daysColor}`}>{days} days left</span>
       </div>
       <div className="flex h-3 gap-0.5 rounded-sm overflow-hidden mb-2">
         <div className="bg-success" style={{ width: `${avail}%` }} title="Available" />
@@ -620,7 +618,7 @@ function RiskRow({
         />
         <div className="bg-destructive" style={{ width: `${shortage}%` }} title="Shortage" />
       </div>
-      <div className="flex justify-between items-center text-[10px] text-muted-foreground font-medium">
+      <div className="flex justify-between items-center text-3xs text-muted-foreground font-medium">
         <span>Inv: {inv.toLocaleString("en-IN")}</span>
         <span>Demand: {demand.toLocaleString("en-IN")}</span>
         {onIndent && (
