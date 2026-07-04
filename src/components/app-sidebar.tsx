@@ -1,11 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import {
-  LayoutDashboard,
-  ClipboardList,
-  Route as RouteIcon,
-  Boxes,
-  Settings,
-} from "lucide-react";
+import { LayoutDashboard, ClipboardList, Route as RouteIcon, Boxes, Settings } from "lucide-react";
 
 import {
   Sidebar,
@@ -57,10 +51,8 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="min-w-0">
-              <div className="text-sm font-semibold text-sidebar-foreground truncate">
-                IDIE
-              </div>
-              <div className="text-[10px] uppercase tracking-wider text-sidebar-foreground/60 truncate">
+              <div className="text-sm font-semibold text-sidebar-foreground truncate">IDIE</div>
+              <div className="text-3xs uppercase tracking-wider text-sidebar-foreground/60 truncate">
                 Dispatch Engine
               </div>
             </div>
@@ -87,7 +79,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="border-t border-sidebar-border">
-        <div className="px-2 py-2 text-[10px] text-sidebar-foreground/60">
+        <div className="px-2 py-2 text-3xs text-sidebar-foreground/60">
           {!collapsed ? "v1.0 · MVP prototype" : "v1"}
         </div>
       </SidebarFooter>

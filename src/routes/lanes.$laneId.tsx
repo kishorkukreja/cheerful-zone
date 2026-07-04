@@ -166,7 +166,7 @@ function LaneDetail() {
             <Factory className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+            <div className="text-3xs uppercase tracking-wider text-muted-foreground font-semibold">
               Origin factory
             </div>
             <div className="font-semibold">{lane.factory}</div>
@@ -178,7 +178,7 @@ function LaneDetail() {
             <Warehouse className="w-5 h-5" />
           </div>
           <div>
-            <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
+            <div className="text-3xs uppercase tracking-wider text-muted-foreground font-semibold">
               Destination DC
             </div>
             <div className="font-semibold">{lane.dc}</div>
@@ -188,7 +188,7 @@ function LaneDetail() {
           </div>
         </div>
         <div className="bg-card border border-outline-variant rounded-xl p-4">
-          <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mb-1">
+          <div className="text-3xs uppercase tracking-wider text-muted-foreground font-semibold mb-1">
             Recommendation
           </div>
           <div className="flex items-center gap-2">
@@ -213,7 +213,7 @@ function LaneDetail() {
               </p>
             </div>
             <div className="text-right">
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground">
+              <div className="text-3xs uppercase tracking-wider text-muted-foreground">
                 Shortage
               </div>
               <div className="text-2xl font-bold text-destructive font-data-mono">{fmt(s)}</div>
@@ -230,7 +230,7 @@ function LaneDetail() {
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-sm">{b.name}</span>
                       {!b.eligible && (
-                        <Badge variant="outline" className="text-[10px] h-5">
+                        <Badge variant="outline" className="text-3xs h-5">
                           Requires override
                         </Badge>
                       )}
@@ -258,19 +258,19 @@ function LaneDetail() {
 
           <div className="mt-5 pt-4 border-t border-outline-variant grid grid-cols-3 gap-4 text-center">
             <div>
-              <div className="text-[10px] uppercase text-muted-foreground font-semibold">
+              <div className="text-3xs uppercase text-muted-foreground font-semibold">
                 Demand signal
               </div>
               <div className="text-lg font-bold font-data-mono">{fmt(ds)}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase text-muted-foreground font-semibold">
+              <div className="text-3xs uppercase text-muted-foreground font-semibold">
                 Planned coverage
               </div>
               <div className="text-lg font-bold font-data-mono">{fmt(cov)}</div>
             </div>
             <div>
-              <div className="text-[10px] uppercase text-muted-foreground font-semibold">
+              <div className="text-3xs uppercase text-muted-foreground font-semibold">
                 Dispatch calc.
               </div>
               <div className="text-lg font-bold font-data-mono text-primary">{fmt(d)}</div>
@@ -329,7 +329,7 @@ function LaneDetail() {
                 Trailing 14 days actual vs plan · next 14 days projected
               </p>
             </div>
-            <div className="flex gap-3 text-[11px]">
+            <div className="flex gap-3 text-3xs">
               <LegendDot color="bg-primary" label="Actual" />
               <LegendDot color="bg-muted-foreground" label="Plan" />
               <LegendDot color="bg-tertiary" label="Projected" />

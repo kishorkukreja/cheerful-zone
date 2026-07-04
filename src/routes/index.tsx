@@ -142,20 +142,21 @@ function DispatchCockpit() {
 
       {/* KPI strip */}
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-        {kpis.map((k) => (
+        {kpis.map((k, i) => (
           <div
             key={k.label}
-            className={`bg-card border border-outline-variant rounded-xl ${kpiP} flex flex-col justify-between ${kpiH} transition-all`}
+            className={`bg-card border border-outline-variant rounded-xl ${kpiP} flex flex-col justify-between ${kpiH} transition-[height,padding] duration-200 ease-in-out animate-in fade-in slide-in-from-bottom-1 fill-mode-both`}
+            style={{ animationDuration: "300ms", animationDelay: `${i * 50}ms` }}
           >
             <div className="flex items-start justify-between">
-              <span className="text-[10px] uppercase tracking-wider font-semibold text-on-surface-variant">
+              <span className="text-3xs uppercase tracking-wider font-semibold text-on-surface-variant">
                 {k.label}
               </span>
               <k.icon className={`w-4 h-4 ${k.tone}`} />
             </div>
             <div>
               <div className="text-2xl font-bold font-data-mono leading-none">{k.value}</div>
-              <div className="text-[11px] text-muted-foreground mt-1">{k.unit}</div>
+              <div className="text-3xs text-muted-foreground mt-1">{k.unit}</div>
             </div>
           </div>
         ))}
@@ -171,12 +172,12 @@ function DispatchCockpit() {
                 {ranked.length} lanes evaluated · sorted by engine priority score
               </p>
             </div>
-            <div className="flex text-[11px] gap-1">
+            <div className="flex text-3xs gap-1">
               {REGIONS.map((r) => (
                 <button
                   key={r}
                   onClick={() => setRegion(r)}
-                  className={`px-2.5 py-1 rounded-md border transition-colors ${
+                  className={`px-2.5 py-1 rounded-md border transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${
                     region === r
                       ? "bg-primary text-primary-foreground border-primary"
                       : "border-outline-variant hover:bg-surface-container-low"
@@ -192,7 +193,7 @@ function DispatchCockpit() {
           <div className="overflow-x-auto hidden md:block">
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-surface-container-low text-on-surface-variant text-[11px] uppercase tracking-wider">
+                <tr className="bg-surface-container-low text-on-surface-variant text-3xs uppercase tracking-wider">
                   <th className="px-3 py-2 text-left font-semibold w-10">#</th>
                   <th className="px-3 py-2 text-left font-semibold">Lane</th>
                   <th className="px-3 py-2 text-right font-semibold">Demand</th>
@@ -219,19 +220,19 @@ function DispatchCockpit() {
                       </td>
                       <td className={`px-3 ${cellY}`}>
                         <div className="font-semibold leading-tight">{l.cbu}</div>
-                        <div className="text-[11px] text-muted-foreground">
+                        <div className="text-3xs text-muted-foreground">
                           {l.factoryCode} → {l.dcCode} · Tier {l.customerTier} · {l.pack}
                         </div>
                       </td>
                       <td className={`px-3 ${cellY} text-right font-data-mono`}>
                         {fmt(demandSignal(l))}
-                        <div className="text-[10px] text-muted-foreground">
+                        <div className="text-3xs text-muted-foreground">
                           {l.orderLoss > l.nrApo ? "Order loss" : "NR APO"}
                         </div>
                       </td>
                       <td className={`px-3 ${cellY} text-right font-data-mono`}>
                         {fmt(plannedCoverage(l))}
-                        <div className="text-[10px] text-muted-foreground">Alloc + PDQ</div>
+                        <div className="text-3xs text-muted-foreground">Alloc + PDQ</div>
                       </td>
                       <td className={`px-3 ${cellY} text-right font-data-mono`}>
                         <span className={s > 0 ? "text-destructive font-semibold" : ""}>
@@ -252,14 +253,14 @@ function DispatchCockpit() {
                         <div className="flex items-center justify-end gap-1">
                           {rec === "Dispatch" &&
                             (isDispatched ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] text-on-success-container bg-success-container px-2 py-1 rounded-md font-semibold">
+                              <span className="inline-flex items-center gap-1 text-3xs text-on-success-container bg-success-container px-2 py-1 rounded-md font-semibold">
                                 <Check className="w-3 h-3" /> Approved
                               </span>
                             ) : (
                               <Button
                                 size="sm"
                                 variant="outline"
-                                className="h-7 text-[11px]"
+                                className="h-7 text-3xs"
                                 onClick={() => handleApprove(l, d)}
                               >
                                 Approve
@@ -270,14 +271,14 @@ function DispatchCockpit() {
                               <Link
                                 to="/indents"
                                 search={{ highlight: existingIndent.id }}
-                                className="text-[11px] font-semibold text-primary hover:underline"
+                                className="text-3xs font-semibold text-primary hover:underline"
                               >
                                 View indent
                               </Link>
                             ) : (
                               <Button
                                 size="sm"
-                                className="h-7 text-[11px]"
+                                className="h-7 text-3xs"
                                 onClick={() => handleIndent(l)}
                               >
                                 Indent
@@ -286,7 +287,7 @@ function DispatchCockpit() {
                           <Link
                             to="/lanes/$laneId"
                             params={{ laneId: l.id }}
-                            className="text-primary hover:underline text-[11px] inline-flex items-center"
+                            className="text-primary hover:underline text-3xs inline-flex items-center"
                           >
                             Details <ArrowUpRight className="w-3 h-3" />
                           </Link>
@@ -313,11 +314,9 @@ function DispatchCockpit() {
                 <div key={l.id} className="p-4">
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div>
-                      <div className="text-[11px] text-muted-foreground font-data-mono">
-                        #{i + 1}
-                      </div>
+                      <div className="text-3xs text-muted-foreground font-data-mono">#{i + 1}</div>
                       <div className="font-semibold leading-tight">{l.cbu}</div>
-                      <div className="text-[11px] text-muted-foreground">
+                      <div className="text-3xs text-muted-foreground">
                         {l.factoryCode} → {l.dcCode} · Tier {l.customerTier}
                       </div>
                     </div>
@@ -327,13 +326,13 @@ function DispatchCockpit() {
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-center mb-3">
                     <div>
-                      <div className="text-[10px] text-muted-foreground">Demand</div>
+                      <div className="text-3xs text-muted-foreground">Demand</div>
                       <div className="font-data-mono font-semibold text-sm">
                         {fmt(demandSignal(l))}
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-muted-foreground">Shortage</div>
+                      <div className="text-3xs text-muted-foreground">Shortage</div>
                       <div
                         className={`font-data-mono font-semibold text-sm ${s > 0 ? "text-destructive" : ""}`}
                       >
@@ -341,7 +340,7 @@ function DispatchCockpit() {
                       </div>
                     </div>
                     <div>
-                      <div className="text-[10px] text-muted-foreground">Dispatch Calc.</div>
+                      <div className="text-3xs text-muted-foreground">Dispatch Calc.</div>
                       <div className="font-data-mono font-semibold text-sm text-primary">
                         {fmt(d)}
                       </div>
@@ -417,10 +416,7 @@ function DispatchCockpit() {
                 </li>
               ))}
             </ul>
-            <Link
-              to="/admin"
-              className="text-[11px] text-primary hover:underline mt-3 inline-block"
-            >
+            <Link to="/admin" className="text-3xs text-primary hover:underline mt-3 inline-block">
               Tune weights in Admin →
             </Link>
           </div>
@@ -445,10 +441,10 @@ function DispatchCockpit() {
 
           <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
             <div className="flex items-center justify-between mb-1">
-              <div className="text-[10px] uppercase tracking-wider text-primary font-bold">
+              <div className="text-3xs uppercase tracking-wider text-primary font-bold">
                 Today's Impact
               </div>
-              <span className="text-[10px] text-muted-foreground">live</span>
+              <span className="text-3xs text-muted-foreground">live</span>
             </div>
             <div className="text-2xl font-bold">−18%</div>
             <div className="text-xs text-on-surface-variant mb-3">

@@ -188,7 +188,7 @@ function AdminConsole() {
               <div className="flex items-center justify-between mb-1">
                 <h3 className="font-semibold">Live ranking preview</h3>
                 {isDirty && (
-                  <span className="text-[10px] uppercase font-bold text-tertiary">Unsaved</span>
+                  <span className="text-3xs uppercase font-bold text-tertiary">Unsaved</span>
                 )}
               </div>
               <p className="text-xs text-muted-foreground mb-4">
@@ -212,7 +212,7 @@ function AdminConsole() {
                         </span>
                         <div>
                           <div className="font-semibold text-sm">{l.cbu}</div>
-                          <div className="text-[11px] text-muted-foreground">
+                          <div className="text-3xs text-muted-foreground">
                             {l.factoryCode} → {l.dcCode}
                           </div>
                         </div>
@@ -247,7 +247,7 @@ function AdminConsole() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-surface-container-low text-on-surface-variant text-[11px] uppercase tracking-wider">
+                  <tr className="bg-surface-container-low text-on-surface-variant text-3xs uppercase tracking-wider">
                     <th className="px-4 py-2 text-left font-semibold">Lane ID</th>
                     <th className="px-4 py-2 text-left font-semibold">Factory</th>
                     <th className="px-4 py-2 text-left font-semibold">DC</th>
@@ -325,13 +325,13 @@ function AdminConsole() {
                       <div className="text-xs text-muted-foreground">{i.desc}</div>
                     </div>
                     <span
-                      className={`inline-flex items-center gap-1 text-[10px] font-bold uppercase ${ok ? "text-success" : "text-tertiary"}`}
+                      className={`inline-flex items-center gap-1 text-3xs font-bold uppercase ${ok ? "text-success" : "text-tertiary"}`}
                     >
                       {ok ? <CheckCircle2 className="w-3 h-3" /> : <XCircle className="w-3 h-3" />}
                       {i.status}
                     </span>
                   </div>
-                  <div className="text-[11px] text-muted-foreground mt-4 flex justify-between">
+                  <div className="text-3xs text-muted-foreground mt-4 flex justify-between">
                     <span>Last sync: {i.last}</span>
                     <button
                       className="text-primary hover:underline"
