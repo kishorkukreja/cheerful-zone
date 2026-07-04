@@ -10,7 +10,9 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as StockRouteImport } from './routes/stock'
+import { Route as ShipmentsRouteImport } from './routes/shipments'
 import { Route as IndentsRouteImport } from './routes/indents'
+import { Route as AgenticRouteImport } from './routes/agentic'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LanesLaneIdRouteImport } from './routes/lanes.$laneId'
@@ -20,9 +22,19 @@ const StockRoute = StockRouteImport.update({
   path: '/stock',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ShipmentsRoute = ShipmentsRouteImport.update({
+  id: '/shipments',
+  path: '/shipments',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndentsRoute = IndentsRouteImport.update({
   id: '/indents',
   path: '/indents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgenticRoute = AgenticRouteImport.update({
+  id: '/agentic',
+  path: '/agentic',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -44,14 +56,18 @@ const LanesLaneIdRoute = LanesLaneIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/agentic': typeof AgenticRoute
   '/indents': typeof IndentsRoute
+  '/shipments': typeof ShipmentsRoute
   '/stock': typeof StockRoute
   '/lanes/$laneId': typeof LanesLaneIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/agentic': typeof AgenticRoute
   '/indents': typeof IndentsRoute
+  '/shipments': typeof ShipmentsRoute
   '/stock': typeof StockRoute
   '/lanes/$laneId': typeof LanesLaneIdRoute
 }
@@ -59,22 +75,48 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
+  '/agentic': typeof AgenticRoute
   '/indents': typeof IndentsRoute
+  '/shipments': typeof ShipmentsRoute
   '/stock': typeof StockRoute
   '/lanes/$laneId': typeof LanesLaneIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/indents' | '/stock' | '/lanes/$laneId'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/agentic'
+    | '/indents'
+    | '/shipments'
+    | '/stock'
+    | '/lanes/$laneId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/indents' | '/stock' | '/lanes/$laneId'
-  id: '__root__' | '/' | '/admin' | '/indents' | '/stock' | '/lanes/$laneId'
+  to:
+    | '/'
+    | '/admin'
+    | '/agentic'
+    | '/indents'
+    | '/shipments'
+    | '/stock'
+    | '/lanes/$laneId'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/agentic'
+    | '/indents'
+    | '/shipments'
+    | '/stock'
+    | '/lanes/$laneId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
+  AgenticRoute: typeof AgenticRoute
   IndentsRoute: typeof IndentsRoute
+  ShipmentsRoute: typeof ShipmentsRoute
   StockRoute: typeof StockRoute
   LanesLaneIdRoute: typeof LanesLaneIdRoute
 }
@@ -88,11 +130,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StockRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/shipments': {
+      id: '/shipments'
+      path: '/shipments'
+      fullPath: '/shipments'
+      preLoaderRoute: typeof ShipmentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/indents': {
       id: '/indents'
       path: '/indents'
       fullPath: '/indents'
       preLoaderRoute: typeof IndentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agentic': {
+      id: '/agentic'
+      path: '/agentic'
+      fullPath: '/agentic'
+      preLoaderRoute: typeof AgenticRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -122,7 +178,9 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
+  AgenticRoute: AgenticRoute,
   IndentsRoute: IndentsRoute,
+  ShipmentsRoute: ShipmentsRoute,
   StockRoute: StockRoute,
   LanesLaneIdRoute: LanesLaneIdRoute,
 }
