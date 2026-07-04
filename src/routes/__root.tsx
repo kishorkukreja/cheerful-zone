@@ -14,6 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { Switch } from "@/components/ui/switch";
+import { useAppStore, setCompact } from "@/store/app-store";
 
 function NotFoundComponent() {
   return (
@@ -87,17 +89,36 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "Dispatch Cockpit · IDIE" },
       {
         property: "og:description",
-        content:
-          "Standardized, service-driven dispatch prioritization for supply planners.",
+        content: "Standardized, service-driven dispatch prioritization for supply planners.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:title", content: "Dispatch Cockpit · IDIE" },
-      { name: "description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
-      { property: "og:description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
-      { name: "twitter:description", content: "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/154c539b-98dd-4d53-ae10-d0252705c908/id-preview-eb5e5b7d--4ee63b03-7fc2-4bd6-985b-2a89f19de0c4.lovable.app-1783126505561.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/154c539b-98dd-4d53-ae10-d0252705c908/id-preview-eb5e5b7d--4ee63b03-7fc2-4bd6-985b-2a89f19de0c4.lovable.app-1783126505561.png" },
+      {
+        name: "description",
+        content:
+          "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers.",
+      },
+      {
+        property: "og:description",
+        content:
+          "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers.",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Prioritized morning worklist of Factory-to-DC lanes with shortages, dispatch recommendations and indent triggers.",
+      },
+      {
+        property: "og:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/154c539b-98dd-4d53-ae10-d0252705c908/id-preview-eb5e5b7d--4ee63b03-7fc2-4bd6-985b-2a89f19de0c4.lovable.app-1783126505561.png",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/154c539b-98dd-4d53-ae10-d0252705c908/id-preview-eb5e5b7d--4ee63b03-7fc2-4bd6-985b-2a89f19de0c4.lovable.app-1783126505561.png",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -136,6 +157,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { compact } = useAppStore();
   return (
     <QueryClientProvider client={queryClient}>
       <SidebarProvider>
@@ -153,9 +175,13 @@ function RootComponent() {
                 </div>
               </div>
               <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="inline-block w-2 h-2 rounded-full bg-emerald-500" />
+                <span className="inline-block w-2 h-2 rounded-full bg-success" />
                 Engine run: Today 06:00 IST
               </div>
+              <label className="hidden lg:flex items-center gap-2 pl-3 border-l border-outline-variant text-xs text-muted-foreground cursor-pointer">
+                <Switch checked={compact} onCheckedChange={setCompact} />
+                Compact
+              </label>
               <div className="hidden sm:flex items-center gap-2 pl-3 border-l border-outline-variant">
                 <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground grid place-items-center text-xs font-bold">
                   PS
