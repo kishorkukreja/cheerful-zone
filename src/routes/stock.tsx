@@ -78,6 +78,7 @@ function StockAnalyser() {
       {/* KPI grid */}
       <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <KpiCard
+          index={0}
           label="Total Valuation"
           value="₹1,428 Cr"
           icon={IndianRupee}
@@ -89,6 +90,7 @@ function StockAnalyser() {
           }
         />
         <KpiCard
+          index={1}
           label="Avg Coverage"
           value="18.4 Days"
           icon={Timer}
@@ -100,6 +102,7 @@ function StockAnalyser() {
           }
         />
         <KpiCard
+          index={2}
           label="QC Hold"
           value="1,242 units"
           icon={ClipboardCheck}
@@ -111,6 +114,7 @@ function StockAnalyser() {
           }
         />
         <KpiCard
+          index={3}
           label="Critical SKUs"
           value="12 SKU"
           valueTone="text-destructive"
@@ -175,12 +179,25 @@ function StockAnalyser() {
                 return (
                   <div
                     key={n.id}
-                    className="absolute group cursor-pointer"
+                    className="absolute group"
                     style={{ left: `${n.x}%`, top: `${n.y}%` }}
                   >
                     <div className="relative">
-                      <div className={`w-3.5 h-3.5 rounded-full ${dot} ring-4 ring-card`} />
-                      <div className="absolute top-5 left-0 bg-card border border-outline-variant rounded-xl shadow-lg p-3 w-56 opacity-0 group-hover:opacity-100 transition-opacity z-20 pointer-events-none">
+                      <button
+                        type="button"
+                        aria-label={`${n.name}, ${n.type} · ${n.stockPct}% stock, ${n.coverageDays} days cover`}
+                        onClick={() =>
+                          toast.info(n.name, {
+                            description: `${n.stockPct}% stock · ${n.coverageDays}d cover · QC ${n.qcPending} pending`,
+                          })
+                        }
+                        className="block rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                      >
+                        <span
+                          className={`block w-3.5 h-3.5 rounded-full ${dot} ring-4 ring-card`}
+                        />
+                      </button>
+                      <div className="absolute top-5 left-0 bg-card border border-outline-variant rounded-xl shadow-lg p-3 w-56 opacity-0 scale-95 group-hover:opacity-100 group-hover:scale-100 group-focus-within:opacity-100 group-focus-within:scale-100 transition-[opacity,transform] duration-150 ease-out origin-top-left z-20 pointer-events-none">
                         <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
                           {n.type} · {n.id}
                         </div>
@@ -479,7 +496,7 @@ function StockAnalyser() {
       {/* FAB */}
       <button
         onClick={() => toast.info("Manual stock adjustment opened")}
-        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all z-40"
+        className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-primary-foreground rounded-full shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-transform duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 z-40"
         aria-label="Manual stock adjustment"
       >
         <Plus className="w-6 h-6" />
@@ -495,6 +512,7 @@ function KpiCard({
   icon: Icon,
   tone,
   delta,
+  index = 0,
 }: {
   label: string;
   value: string;
@@ -502,9 +520,13 @@ function KpiCard({
   icon: typeof Filter;
   tone: string;
   delta: React.ReactNode;
+  index?: number;
 }) {
   return (
-    <div className="bg-card border border-outline-variant rounded-xl p-4 flex flex-col justify-between h-32">
+    <div
+      className="bg-card border border-outline-variant rounded-xl p-4 flex flex-col justify-between h-32 animate-in fade-in slide-in-from-bottom-1 duration-300 ease-out fill-mode-both"
+      style={{ animationDelay: `${index * 50}ms` }}
+    >
       <div className="flex justify-between items-start">
         <span className="text-[10px] uppercase tracking-wider text-on-surface-variant font-semibold">
           {label}

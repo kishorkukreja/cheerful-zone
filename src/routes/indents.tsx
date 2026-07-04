@@ -134,10 +134,11 @@ function IndentWorklist() {
           { label: "Approved today", value: counts.approved, tone: "text-success" },
           { label: "Submitted today", value: counts.submitted, tone: "text-primary" },
           { label: "Rejected today", value: counts.rejected, tone: "text-destructive" },
-        ].map((k) => (
+        ].map((k, i) => (
           <div
             key={k.label}
-            className={`bg-card border border-outline-variant rounded-xl ${compact ? "p-3" : "p-4"} transition-all`}
+            className={`bg-card border border-outline-variant rounded-xl ${compact ? "p-3" : "p-4"} transition-[padding] duration-200 ease-in-out animate-in fade-in slide-in-from-bottom-1 fill-mode-both`}
+            style={{ animationDuration: "300ms", animationDelay: `${i * 50}ms` }}
           >
             <div className="text-[10px] uppercase tracking-wider font-semibold text-on-surface-variant">
               {k.label}

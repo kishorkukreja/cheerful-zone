@@ -73,6 +73,10 @@
   --color-on-success-container: var(--on-success-container);
   --color-inverse-surface: var(--inverse-surface);
   --color-inverse-on-surface: var(--inverse-on-surface);
+
+  /* Motion — strong, intentional curves (weak built-in easings feel sluggish) */
+  --ease-snappy: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-emphasized: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 :root {
@@ -205,6 +209,25 @@
   .font-data-mono {
     font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
     font-variant-numeric: tabular-nums;
+  }
+  /* Baseline visible focus for ad-hoc interactive elements that don't set their own ring */
+  button:focus-visible,
+  a:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
 

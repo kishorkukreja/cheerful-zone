@@ -142,10 +142,11 @@ function DispatchCockpit() {
 
       {/* KPI strip */}
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-        {kpis.map((k) => (
+        {kpis.map((k, i) => (
           <div
             key={k.label}
-            className={`bg-card border border-outline-variant rounded-xl ${kpiP} flex flex-col justify-between ${kpiH} transition-all`}
+            className={`bg-card border border-outline-variant rounded-xl ${kpiP} flex flex-col justify-between ${kpiH} transition-[height,padding] duration-200 ease-in-out animate-in fade-in slide-in-from-bottom-1 fill-mode-both`}
+            style={{ animationDuration: "300ms", animationDelay: `${i * 50}ms` }}
           >
             <div className="flex items-start justify-between">
               <span className="text-[10px] uppercase tracking-wider font-semibold text-on-surface-variant">
@@ -176,7 +177,7 @@ function DispatchCockpit() {
                 <button
                   key={r}
                   onClick={() => setRegion(r)}
-                  className={`px-2.5 py-1 rounded-md border transition-colors ${
+                  className={`px-2.5 py-1 rounded-md border transition-colors duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 ${
                     region === r
                       ? "bg-primary text-primary-foreground border-primary"
                       : "border-outline-variant hover:bg-surface-container-low"
