@@ -21,22 +21,30 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 
-const items = [
+type NavItem = {
+  title: string;
+  url: string;
+  icon: typeof LayoutDashboard;
+  exact?: boolean;
+  match?: string;
+};
+
+const items: NavItem[] = [
   { title: "Dispatch Cockpit", url: "/", icon: LayoutDashboard, exact: true },
   { title: "Manual Indents", url: "/indents", icon: ClipboardList },
   { title: "Lane Analysis", url: "/lanes/HRD-DEL-SURF", icon: RouteIcon, match: "/lanes" },
   { title: "Stock Analyser", url: "/stock", icon: Boxes },
   { title: "Admin Console", url: "/admin", icon: Settings },
-] as const;
+];
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const isActive = (item: (typeof items)[number]) => {
+  const isActive = (item: NavItem) => {
     if (item.exact) return pathname === item.url;
-    if ("match" in item && item.match) return pathname.startsWith(item.match);
+    if (item.match) return pathname.startsWith(item.match);
     return pathname === item.url || pathname.startsWith(item.url + "/");
   };
 
